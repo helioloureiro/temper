@@ -56,6 +56,7 @@ TEMPerHUM  | 413d:2107 | TEMPerX_V3.1    | I    | I   | White plastic
 TEMPer2    | 413d:2107 | TEMPerX_V3.3    | I,E  |     | White plastic
 TEMPer1F   | 413d:2107 | TEMPerX_V3.3    | E    |     | White plastic
 TEMPerX232 | 1a86:5523 | TEMPerX232_V2.0 | I,E  | I   | White plastic
+TEMPer2    | 3553:a001 | TEMPer2_V4.1    | I,E  |     | White plastic
 
 The 1a86:5523 device may identify as 413d:2107 depending on button presses,
 but it cannot be used successfully when in that mode.

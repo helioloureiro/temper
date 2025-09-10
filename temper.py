@@ -172,6 +172,7 @@ class USBRead(object):
         os.close(fd)
         if self.verbose:
             print("Data value: %s" % binascii.hexlify(bytes))
+            print("firmware: %s" % firmware[:12])
 
         info = dict()
         info["firmware"] = str(firmware, "latin-1").strip()
@@ -183,7 +184,10 @@ class USBRead(object):
             self._parse_bytes("internal temperature", 2, 256.0, bytes, info)
             return info
 
-        if info["firmware"][:12] in ["TEMPerX_V3.1", "TEMPerX_V3.3"]:
+        if (
+            info["firmware"][:12] in ["TEMPerX_V3.1", "TEMPerX_V3.3"]
+            or info["firmware"][:12] == "TEMPer2_V4.1"
+        ):
             info["firmware"] = info["firmware"][:12]
             self._parse_bytes("internal temperature", 2, 100.0, bytes, info)
             self._parse_bytes("internal humidity", 4, 100.0, bytes, info)
@@ -278,6 +282,9 @@ class Temper(object):
             return True
         if vendorid == 0x1A86 and productid == 0x5523:
             return True
+        # 3553:a001
+        if vendorid == 0x3553 and productid == 0xA001:
+            return True
 
         # The id is not known to this program.
         return False
@@ -330,6 +337,8 @@ class Temper(object):
                 continue
             usbread = USBRead(info["devices"][-1], verbose)
             results.append({**info, **usbread.read()})
+        if verbose:
+            print("results:", results)
         return results
 
     def _add_temperature(self, name, info):
@@ -361,13 +370,24 @@ class Temper(object):
             return
 
         for info in results:
-            s = "Bus %03d Dev %03d %04x:%04x %s" % (
-                info["busnum"],
-                info["devnum"],
-                info["vendorid"],
-                info["productid"],
-                info["firmware"],
-            )
+            try:
+                s = "Bus %03d Dev %03d %04x:%04x %s" % (
+                    info["busnum"],
+                    info["devnum"],
+                    info["vendorid"],
+                    info["productid"],
+                    info["firmware"],
+                )
+            except KeyError:
+                print("Failed info:", info)
+                s = "Bus %03d Dev %03d %04x:%04x " % (
+                    info["busnum"],
+                    info["devnum"],
+                    info["vendorid"],
+                    info["productid"],
+                )
+                pass
+
             if "error" in info:
                 s += " Error: %s" % info["error"]
             else:
